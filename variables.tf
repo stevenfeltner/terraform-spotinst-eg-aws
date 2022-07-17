@@ -9,16 +9,11 @@ variable "description" {
 }
 variable "product" {
   type        = string
-  default     = null
+  default     = "Linux/UNIX"
   description = "Operation system type. Valid values: \"Linux/UNIX\", \"SUSE Linux\", \"Windows\". For EC2 Classic instances: \"Linux/UNIX (Amazon VPC)\", \"SUSE Linux (Amazon VPC)\", \"Windows (Amazon VPC)\"."
 }
-variable "availability_zones" {
-  type        = string
-  default     = null
-  description = "List of Strings of availability zones. When this parameter is set, subnet_ids should be left unused. Note: availability_zones naming syntax follows the convention availability-zone:subnet:placement-group-name. For example, to set an AZ in us-east-1 with subnet subnet-123456 and placement group ClusterI03, you would set: availability_zones = [\"us-east-1a:subnet-123456:ClusterI03\"]"
-}
 variable "subnet_ids" {
-  type        = string
+  type        = list(string)
   default     = null
   description = " List of Strings of subnet identifiers. Note: When this parameter is set, availability_zones should be left unused."
 }
@@ -28,33 +23,32 @@ variable "region" {
   description = "The AWS region your group will be created in. Note: This parameter is required if you specify subnets (through subnet_ids). This parameter is optional if you specify Availability Zones (through availability_zones)."
 }
 variable "preferred_availability_zones" {
-  type        = string
+  type        = list(string)
   default     = null
   description = "The AZs to prioritize when launching Spot instances. If no markets are available in the Preferred AZs, Spot instances are launched in the non-preferred AZs. Note: Must be a sublist of availability_zones and orientation value must not be \"equalAzDistribution\"."
 }
 variable "max_size" {
-  type = string
-  default = null
+  type        = number
+  default     = null
   description = "The maximum number of instances the group should have at any time."
 }
 variable "min_size" {
-  type        = string
+  type        = number
   default     = null
   description = "The minimum number of instances the group should have at any time."
 }
 variable "desired_capacity" {
-  type        = string
-  default     = null
+  type        = number
+  default     = 1
   description = "The desired number of instances the group should have at any time."
 }
 variable "capacity_unit" {
   type        = string
-  default     = null
+  default     = "instance"
   description = "Default: instance) The capacity unit to launch instances by. If not specified, when choosing the weight unit, each instance will weight as the number of its vCPUs. Valid values: instance, weight."
 }
 variable "security_groups" {
-  type        = string
-  default     = null
+  type        = list(string)
   description = "A list of associated security group IDS."
 }
 variable "image_id" {
@@ -73,8 +67,8 @@ variable "key_name" {
   description = "The key name that should be used for the instance."
 }
 variable "enable_monitoring" {
-  type        = string
-  default     = null
+  type        = bool
+  default     = false
   description = "Indicates whether monitoring is enabled for the instance."
 }
 variable "user_data" {
@@ -88,30 +82,30 @@ variable "shutdown_script" {
   description = "The Base64-encoded shutdown script that executes prior to instance termination, for more information please see: Shutdown Script"
 }
 variable "ebs_optimized" {
-  type        = string
-  default     = null
+  type        = bool
+  default     = true
   description = "Enable high bandwidth connectivity between instances and AWS’s Elastic Block Store (EBS). For instance types that are EBS-optimized by default this parameter will be ignored."
 }
 variable "placement_tenancy" {
   type        = string
-  default     = null
-  description = "Default: \"default\") Enable dedicated tenancy. Note: There is a flat hourly fee for each region in which dedicated tenancy is used. Valid values: \"default\", \"dedicated\" ."
+  default     = "default"
+  description = "Default: \"default\". Enable dedicated tenancy. Note: There is a flat hourly fee for each region in which dedicated tenancy is used. Valid values: \"default\", \"dedicated\" ."
 }
 ## metadata_options ##
-variable "http_token" {
+variable "http_tokens" {
   type        = string
   default     = null
   description = "The state of token usage for your instance metadata requests. Valid values: optional or required."
 }
 variable "http_put_response_hop_limit" {
-  type        = string
+  type        = number
   default     = null
   description = "Default: 1. The desired HTTP PUT response hop limit for instance metadata requests. The larger the number, the further instance metadata requests can travel. Valid values: Integers from 1 to 64."
 }
 
 ## cpu_options ##
 variable "threads_per_core" {
-  type        = string
+  type        = number
   default     = null
   description = "The ability to define the number of threads per core in instances that allow this."
 }
@@ -119,20 +113,17 @@ variable "threads_per_core" {
 
 variable "instance_types_ondemand" {
   type        = string
-  default     = null
   description = "The type of instance determines your instance's CPU capacity, memory and storage (e.g., m1.small, c1.xlarge)."
 }
 variable "instance_types_spot" {
-  type        = string
-  default     = null
+  type        = list(string)
   description = "One or more instance types."
 }
 variable "instance_types_preferred_spot" {
-  type        = string
+  type        = list(string)
   default     = null
   description = "Prioritize a subset of spot instance types. Must be a subset of the selected spot instance types."
 }
-
 
 variable "instance_types_weights" {
   type            = list(object({
@@ -150,7 +141,7 @@ variable "cpu_credits" {
 }
 variable "fallback_to_ondemand" {
   type        = bool
-  default     = null
+  default     = true
   description = "In a case of no Spot instances available, Elastigroup will launch on-demand instances instead."
 }
 variable "wait_for_capacity" {
@@ -165,27 +156,22 @@ variable "wait_for_capacity_timeout" {
 }
 variable "orientation" {
   type        = string
-  default     = null
-  description = " Default: balanced) Select a prediction strategy. Valid values: balanced, costOriented, equalAzDistribution, availabilityOriented. You can read more in our documentation."
+  default     = "balanced"
+  description = " Default: balanced. Select a prediction strategy. Valid values: balanced, costOriented, equalAzDistribution, availabilityOriented. You can read more in our documentation."
 }
 variable "spot_percentage" {
-  type        = string
-  default     = null
+  type        = number
+  default     = 100
   description = "The percentage of Spot instances that would spin up from the desired_capacity number."
 }
-variable "ondemand_count" {
-  type        = string
-  default     = null
-  description = "Number of on demand instances to launch in the group. All other instances will be spot instances. When this parameter is set the spot_percentage parameter is being ignored."
-}
 variable "draining_timeout" {
-  type        = string
-  default     = null
+  type        = number
+  default     = 120
   description = " The time in seconds, the instance is allowed to run while detached from the ELB. This is to allow the instance time to be drained from incoming TCP connections before terminating it, during a scale down operation."
 }
 variable "utilize_reserved_instances" {
   type        = bool
-  default     = null
+  default     = true
   description = "In a case of any available reserved instances, Elastigroup will utilize them first before purchasing Spot instances."
 }
 variable "minimum_instance_lifetime" {
@@ -325,13 +311,22 @@ variable "scaling_up_policy" {
     period                = number
     evaluuation_periods   = number
     cooldown              = number
-    dimensions            = list(object({
-      name                = string
-      value               = string
-    }))
     operator              = number
     source                = number
-    step_adjustment       = list(object({
+  }))
+  default                 = null
+  description             = "scaling_up object"
+}
+variable "scaling_up_dimensions" {
+    type            = list(object({
+      name            = string
+      value           = string
+    }))
+  default = null
+  description = "scaling_up dimensions"
+}
+variable "scaling_up_step_adjustment" {
+    type     = list(object({
       type                = string
       adjustment          = number
       maximim             = number
@@ -340,10 +335,10 @@ variable "scaling_up_policy" {
       target              = number
       threshold           = number
     }))
-  }))
-  default                 = null
-  description             = "scaling_up object"
+  default = null
+  description = "scaling up step adjustment"
 }
+
 variable "scaling_down_policy" {
   type = list(object({
     policy_name           = string
@@ -357,13 +352,24 @@ variable "scaling_down_policy" {
     period                = number
     evaluuation_periods   = number
     cooldown              = number
-    dimensions            = list(object({
+    operator              = number
+    source                = number
+  }))
+  default                 = null
+  description             = "scaling_down object"
+}
+
+variable "scaling_down_dimensions" {
+  type = list(object({
       name                = string
       value               = string
     }))
-    operator              = number
-    source                = number
-    step_adjustment       = list(object({
+  default = null
+  description = "scaling down dimensions object"
+}
+
+variable "scaling_down_step_adjustment" {
+  type = list(object({
       type                = string
       adjustment          = number
       maximim             = number
@@ -372,10 +378,10 @@ variable "scaling_down_policy" {
       target              = number
       threshold           = number
     }))
-  }))
-  default                 = null
-  description             = "scaling_down object"
+  default = null
+  description = "scaling down step adjustment"
 }
+
 variable "scaling_target_policy" {
   type                    = list(object({
     policy_name           = string
@@ -598,38 +604,23 @@ variable "auto_apply_tags" {
   default     = null
   description = "The group name."
 }
-
-variable "batch_size_percentage" {
-  type        = number
-  default     = null
-  description = "The group name."
-}
-variable "health_check_type" {
-  type        = string
-  default     = null
-  description = "The group name."
-}
-variable "grace_period" {
-  type        = number
-  default     = null
-  description = "The group name."
-}
-variable "wait_for_roll_percentage" {
-  type        = number
-  default     = null
-  description = "The group name."
-}
-variable "wait_for_roll_timeout" {
-  type        = number
-  default     = null
-  description = "The group name."
+variable "roll_config" {
+  type = object({
+    batch_size_percentage       = number
+    health_check_type           = string
+    grace_period                = number
+    wait_for_roll_percentage    = number
+    wait_for_roll_timeout       = number
+  })
+  default = null
+  description = "roll_config object"
 }
 ############
 
 variable "update_strategy" {
   type = object({
     action                              = string
-    should_drain_instances              = false
+    should_drain_instances              = bool
     batch_min_healthy_percentage        = number
     on_failure                          = object({
       action_type                       = string
